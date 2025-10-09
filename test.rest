@@ -10,9 +10,9 @@ POST http://{{host}}/api/auth/register
 Content-Type: application/json
 
 {
-    "email":"test4@test.com",
+    "email":"mintest@test.com",
     "password":"test123!",
-    "name":"test4"
+    "name":"mintest"
 }
 
 
