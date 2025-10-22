@@ -24,11 +24,23 @@ var builder = WebApplication.CreateBuilder(args);
 
 Env.Load();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReactApp", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173") // Frontendens URL
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials(); // Viktigt för SignalR
+    });
+});
+
 builder.Services.AddOpenApi();
 builder.Services.AddScoped<IBookingRepository, BookingRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddControllers();
 builder.Services.AddSignalR();
+builder.Services.AddSingleton<MqttService>();
 
 builder.Services.AddHttpClient("openai", client =>
 {
@@ -71,17 +83,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
     options.UseMySql(cs, ServerVersion.AutoDetect(cs));
 });
-builder.Services.AddCors(options =>
-    {
-        options.AddPolicy("AllowReactApp", policy =>
-        {
-            policy.SetIsOriginAllowed(_ => true)
-             .AllowAnyHeader()
-             .AllowAnyMethod()
-             .AllowCredentials(); 
-        
-        });
-    });
+
 
 builder.Services.AddScoped<JwtToken>();
 
@@ -119,17 +121,20 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(keyBytes)
     };
-}); 
+});
 
 builder.Services.AddAuthorization();
+
+
 var app = builder.Build();
+
 // Seed database
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-    
+
     DbSeeder.Seed(db, userManager, roleManager).Wait();
 }
 if (app.Environment.IsDevelopment())
@@ -137,13 +142,22 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-app.UseCors("AllowReactApp");
+//app.UseHttpsRedirection();
 app.UseRouting();
-app.MapControllers();
+
+app.UseCors("AllowReactApp");
+
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.MapControllers();
+app.MapHub<RealtimeHub>("/hub/realtime").RequireCors("AllowReactApp");
+app.MapHub<BookingHub>("/bookingHub").RequireCors("AllowReactApp");
+
 app.UseStaticFiles();
-app.UseHttpsRedirection();
-app.MapHub<BookingHub>("/bookingHub");
+
+var mqttService = app.Services.GetRequiredService<MqttService>();
+await mqttService.StartAsync();
+
 
 app.Run();

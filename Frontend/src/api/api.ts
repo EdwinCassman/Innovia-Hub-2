@@ -189,4 +189,35 @@ export const deleteUserById = async (id: string, token: string) => {
   return res.data;
 };
 
+export const getDevices = async () => {
+  try {
+    console.log("Fetching devices...");
+    const res = await api.get(`/innovia/devices`, {
+      withCredentials: true,
+    });
+    console.log("Devices fetched:", res.data);
+    return res.data;
+  } catch (error) {
+    console.error("Error fetching devices:", error);
+    throw error;
+  }
+};
 
+export const getDeviceData = async (
+  deviceId: string,
+  from: string,
+  to: string
+) => {
+  try {
+    console.log(`Fetching data for device ${deviceId} from ${from} to ${to}...`);
+    const res = await api.get(`/innovia/devices/${deviceId}/data`, {
+      params: { from, to },
+      withCredentials: true,
+    });
+    console.log("Device data fetched:", res.data);
+    return res.data;
+  } catch (error) {
+    console.error("Error fetching device data:", error);
+    throw error;
+  }
+};

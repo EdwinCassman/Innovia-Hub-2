@@ -5,6 +5,8 @@ import UsersTab from "../components/UsersTab";
 import ResourcesTab from "../components/ResourcesTab";
 import { connection } from "../signalRConnection";
 import { ToastContainer, toast } from "react-toastify";
+import DeviceList from "../components/DeviceList";
+import RealTimeData from "../components/RealTimeData";
 import "react-toastify/dist/ReactToastify.css";
 
 interface AdminProps {
@@ -13,6 +15,7 @@ interface AdminProps {
 
 const Admin: React.FC<AdminProps> = ({ token }) => {
   const [activeTab, setActiveTab] = useState("bookings");
+  const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null);
 
   useEffect(() => {
     const page = localStorage.getItem("activePage");
@@ -103,12 +106,42 @@ const Admin: React.FC<AdminProps> = ({ token }) => {
           }}>
           RESURSER
         </button>
+        <button
+          className={`tab ${activeTab === "devices" ? "active" : ""}`}
+          onClick={() => {
+            setActiveTab("devices");
+            localStorage.setItem("activePage", "devices");
+          }}>
+          ENHETER
+        </button>
+        <button
+          className={`tab ${activeTab === "realtime" ? "active" : ""}`}
+          onClick={() => {
+            setActiveTab("realtime");
+            localStorage.setItem("activePage", "realtime");
+          }}>
+          REALTIDSDATA
+        </button>
       </nav>
 
       <div className="content">
         {activeTab === "bookings" && <BookingsTab token={token} />}
         {activeTab === "users" && <UsersTab token={token} />}
         {activeTab === "resources" && <ResourcesTab token={token} />}
+        {activeTab === "devices" && (
+          <DeviceList
+            onDeviceSelect={(deviceId: string) => {
+              console.log("Updating selectedDeviceId:", deviceId);
+              setSelectedDeviceId(deviceId);
+            }}
+          />
+        )}
+        {activeTab === "realtime" && selectedDeviceId && (
+          <>
+            {console.log("Selected Device ID:", selectedDeviceId)}
+            <RealTimeData deviceId={selectedDeviceId} />
+          </>
+        )}
       </div>
     </div>
   );
