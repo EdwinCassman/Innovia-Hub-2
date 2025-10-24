@@ -14,10 +14,11 @@ const DeviceList = ({ onDeviceSelect }: { onDeviceSelect: (deviceId: string) => 
   const [error, setError] = useState<string | null>(null);
   const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null); // Hantera vald enhet
 
+  // HÄMTAR ENHETER FRÅN APIET
   useEffect(() => {
     getDevices()
       .then((data) => {
-        console.log("Devices fetched:", data); // Logga de hämtade enheterna
+        console.log("Devices fetched:", data);
         setDevices(data);
         setLoading(false);
       })
@@ -43,9 +44,9 @@ const DeviceList = ({ onDeviceSelect }: { onDeviceSelect: (deviceId: string) => 
           key={device.id}
           className={`device-item ${selectedDeviceId === device.id ? "selected" : ""}`}
           onClick={() => {
-            console.log("Selected device:", device.id); // Logga den valda enheten
-            setSelectedDeviceId(device.id); // Uppdatera vald enhet
-            onDeviceSelect(device.id); // Skicka vald enhet till föräldrakomponenten
+            console.log("Selected device:", device.id); 
+            setSelectedDeviceId(device.id); 
+            onDeviceSelect(device.id); 
           }}
         >
           {device.model} ({device.serial})

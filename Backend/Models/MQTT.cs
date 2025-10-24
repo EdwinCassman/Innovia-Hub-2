@@ -7,11 +7,14 @@ using Backend.Hubs;
 
 public class MqttService
 {
+    // SignalR HUB CONTEXT FÖR ATT SKICKA MEDDELANDEN TILL FRONTEND
     private readonly IHubContext<RealtimeHub> _hubContext;
+    // MQTT CLIENT SOM ANVÄNDS FÖR ATT ANSLUTA TILL BROKERN
     private readonly IMqttClient _mqttClient;
+    // MQTT OPTIONS SOM DEFINIERAR ANSLUTNINGSINSTÄLLNINGAR
     private readonly MqttClientOptions _mqttOptions;
 
-    // Mappningstabell för att översätta deviceId från Edge.Simulator till UUID från DeviceRegistry
+    // Mapping för att översätta deviceId från Edge.Simulator till UUID från DeviceRegistry
     private static readonly Dictionary<string, string> DeviceIdMapping = new()
     {
         { "device-1", "65e33050-e4c5-4149-a9a5-2fced42cf167" },
@@ -23,10 +26,10 @@ public class MqttService
         { "device-7", "5a5bf592-a974-4462-924d-f57382b8b2b0" },
         { "device-8", "0108746e-b913-4cc0-868b-782a73942deb" },
         { "device-9", "a350017b-b2cd-466f-bb9d-38c0d9c56b2d" },
-        { "device-10", "3b70a429-dc7a-4d6a-83e0-18f0d9d88e64" },
-        // Lägg till fler enheter här
+        { "device-10", "3b70a429-dc7a-4d6a-83e0-18f0d9d88e64" }
     };
 
+    // KONSTRUKTOR SOM INITIALISERAR MQTT CLIENT OCH HÄNGER PÅ EVENT HANDLERS
     public MqttService(IHubContext<RealtimeHub> hubContext)
     {
         _hubContext = hubContext;
@@ -39,113 +42,116 @@ public class MqttService
             .WithTcpServer("localhost", 1883)
             .Build();
 
-        // Event handlers
+        // ANSLUTNING TILL MQTT BROKER
         _mqttClient.ConnectedAsync += async e =>
         {
-            Console.WriteLine("✅ Connected to MQTT broker.");
+            Console.WriteLine("Connected to MQTT broker.");
 
             try
             {
                 await _mqttClient.SubscribeAsync("tenants/innovia/devices/+/measurements");
-                Console.WriteLine("📡 Subscribed to topic: tenants/innovia/devices/+/measurements");
+                Console.WriteLine("Subscribed to topic: tenants/innovia/devices/+/measurements");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ Failed to subscribe to topic: {ex.Message}");
+                Console.WriteLine($"Failed to subscribe to topic: {ex.Message}");
             }
         };
 
+        // FRÅNKOPPLING FRÅN MQTT BROKER OCH AUTOMATISK ÅTERANSLUTNING
         _mqttClient.DisconnectedAsync += async e =>
         {
-            Console.WriteLine("⚠️ Disconnected from MQTT broker. Reconnecting in 5 seconds...");
+            Console.WriteLine("Disconnected from MQTT broker. Reconnecting in 5 seconds...");
             await Task.Delay(TimeSpan.FromSeconds(5));
 
             try
             {
                 await _mqttClient.ConnectAsync(_mqttOptions);
-                Console.WriteLine("🔁 Reconnected successfully.");
+                Console.WriteLine("Reconnected successfully.");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ Reconnection failed: {ex.Message}");
+                Console.WriteLine($"Reconnection failed: {ex.Message}");
             }
         };
 
+        // HANTERING AV INKOMMANDE MQTT-MEDDELANDEN
         _mqttClient.ApplicationMessageReceivedAsync += async e =>
         {
             try
             {
-                // Log payload information
+        
                 if (e.ApplicationMessage.Payload == null)
                 {
-                    Console.WriteLine("❌ Received MQTT message with null payload.");
+                    Console.WriteLine("Received MQTT message with null payload.");
                     return;
                 }
 
                 string payloadString = Encoding.UTF8.GetString(e.ApplicationMessage.Payload);
-                Console.WriteLine($"📩 Received MQTT message: {payloadString}");
+                Console.WriteLine($"Received MQTT message: {payloadString}");
 
-                // Configure JsonSerializerOptions
+
                 var options = new JsonSerializerOptions
                 {
-                    PropertyNameCaseInsensitive = true // Ignorera skillnader i versaler/gemener
+                    PropertyNameCaseInsensitive = true 
                 };
 
-                // Deserialize the message
+                // DESERIALISERING AV MQTT-MEDDELANDET
                 var message = JsonSerializer.Deserialize<MqttMessage>(payloadString, options);
 
                 if (message == null)
                 {
-                    Console.WriteLine("❌ Failed to deserialize MQTT message.");
+                    Console.WriteLine("Failed to deserialize MQTT message.");
                     return;
                 }
 
-                // Log deserialized message
-                Console.WriteLine($"✅ Deserialized MQTT message: DeviceId={message.DeviceId}, Timestamp={message.Timestamp}");
+                Console.WriteLine($"Deserialized MQTT message: DeviceId={message.DeviceId}, Timestamp={message.Timestamp}");
 
                 if (message.Metrics == null || message.Metrics.Count == 0)
                 {
-                    Console.WriteLine("❌ MQTT message has null or empty Metrics.");
+                    Console.WriteLine("MQTT message has null or empty Metrics.");
                     return;
                 }
 
-                // Mappa deviceId till UUID
+                // MAPPA DEVICE ID TILL UUID
                 if (!DeviceIdMapping.TryGetValue(message.DeviceId, out var mappedDeviceId))
                 {
-                    Console.WriteLine($"❌ Unknown deviceId: {message.DeviceId}");
+                    Console.WriteLine($"Unknown deviceId: {message.DeviceId}");
                     return;
                 }
 
+                // LOOPAR OCH SKICKAR DATA TILL SIGNALR HUBBEN
                 foreach (var metric in message.Metrics)
                 {
-                    Console.WriteLine($"📊 Metric: Type={metric.Type}, Value={metric.Value}, Unit={metric.Unit}");
+                    Console.WriteLine($"Metric: Type={metric.Type}, Value={metric.Value}, Unit={metric.Unit}");
                     await _hubContext.Clients.All.SendAsync("measurementReceived", new
                     {
-                        deviceId = mappedDeviceId, // Använd det mappade UUID
+                        deviceId = mappedDeviceId, // Använder de mappade UUID:t
                         type = metric.Type,
                         value = metric.Value,
                         time = message.Timestamp
                     });
-                    Console.WriteLine($"📤 Sent data to SignalR: Mapped DeviceId={mappedDeviceId}, Type={metric.Type}, Value={metric.Value}, Time={message.Timestamp}");
+                    Console.WriteLine($"Sent data to SignalR: Mapped DeviceId={mappedDeviceId}, Type={metric.Type}, Value={metric.Value}, Time={message.Timestamp}");
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ Error processing MQTT message: {ex.Message}");
+                Console.WriteLine($"Error processing MQTT message: {ex.Message}");
             }
         };
     }
 
+    // START OCH STOPP AV MQTT TJÄNSTEN
     public async Task StartAsync()
     {
         try
         {
             await _mqttClient.ConnectAsync(_mqttOptions);
-            Console.WriteLine("🚀 MQTT client connected successfully.");
+            Console.WriteLine("MQTT client connected successfully.");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"❌ Failed to connect to MQTT broker: {ex.Message}");
+            Console.WriteLine($"Failed to connect to MQTT broker: {ex.Message}");
         }
     }
 
@@ -154,7 +160,7 @@ public class MqttService
         if (_mqttClient.IsConnected)
         {
             await _mqttClient.DisconnectAsync();
-            Console.WriteLine("🛑 MQTT client disconnected.");
+            Console.WriteLine("MQTT client disconnected.");
         }
     }
 }

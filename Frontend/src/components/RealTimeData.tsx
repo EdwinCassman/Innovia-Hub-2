@@ -25,14 +25,14 @@ const RealTimeData: React.FC<RealTimeDataProps> = ({ deviceId }) => {
       try {
         await startRealtimeConnection();
 
-        // Lyssna på inkommande data
+        // LYSSNAR PÅ INKOMMANDE MÄTNINGAR FRÅN SIGNALR
         realtimeConnection.on("measurementReceived", (measurement: TelemetryData) => {
           if (isMounted && measurement.deviceId === deviceId) {
             setData((prevData) => [measurement, ...prevData]);
           }
         });
       } catch (err) {
-        console.error("❌ Error initializing SignalR connection:", err);
+        console.error("Error initializing SignalR connection:", err);
         setError("Failed to connect to realtime updates.");
       }
     };
@@ -42,11 +42,11 @@ const RealTimeData: React.FC<RealTimeDataProps> = ({ deviceId }) => {
     return () => {
       isMounted = false;
 
-      // Stoppa SignalR-anslutningen om den är aktiv
+      // STOPPAR SIGNALR-ANSLUTNINGEN
       if (realtimeConnection.state === "Connected") {
         realtimeConnection.stop()
-          .then(() => console.log("✅ Realtime connection stopped."))
-          .catch((err) => console.error("❌ Error stopping realtime connection:", err));
+          .then(() => console.log("Realtime connection stopped."))
+          .catch((err) => console.error("Error stopping realtime connection:", err));
       }
     };
   }, [deviceId]);

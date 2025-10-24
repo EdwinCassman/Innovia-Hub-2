@@ -9,7 +9,7 @@ namespace Backend.Hubs
 
         public RealtimeHub()
         {
-            // Skapa en SignalR-klient för att ansluta till IoT-servern
+            // SKAPAR EN SIGNAL-R KLIENT SOM ANSLUTER TILL IOT-SERVERN
             if (_iotConnection == null)
             {
                 _iotConnection = new HubConnectionBuilder()
@@ -17,12 +17,12 @@ namespace Backend.Hubs
                     .WithAutomaticReconnect()
                     .Build();
 
-                // Lyssna på inkommande data från IoT-servern
+                // LYSSNAR PÅ INKOMMANDE FRÅN IOT-SERVERN
                 _iotConnection.On<string, string, object, DateTime>("measurementReceived", async (deviceId, type, value, time) =>
                 {
-                    Console.WriteLine($"📩 Received from IoT: DeviceId={deviceId}, Type={type}, Value={value}, Time={time}");
+                    Console.WriteLine($"Received from IoT: DeviceId={deviceId}, Type={type}, Value={value}, Time={time}");
 
-                    // Skicka vidare till frontend via vår egen hub
+                    // SKICKAR VIDARE TILL FRONTEND 
                     await Clients.All.SendAsync("measurementReceived", new
                     {
                         deviceId,
@@ -32,35 +32,37 @@ namespace Backend.Hubs
                     });
                 });
 
-                // Starta anslutningen till IoT-servern
+                // STARTAR ANSLUTNINGEN ASYNKRONT
                 Task.Run(async () =>
                 {
                     try
                     {
                         await _iotConnection.StartAsync();
-                        Console.WriteLine("✅ Connected to IoT server.");
+                        Console.WriteLine("Connected to IoT server.");
 
-                        // Anropa JoinTenant för att ansluta till rätt tenant
+                        // ANROPAR METODEN JoinTenant PÅ IOT-SERVERN FÖR ATT ANSLUTA TILL RÄTT TENANT
                         await _iotConnection.InvokeAsync("JoinTenant", "innovia");
-                        Console.WriteLine("✅ Joined tenant: innovia");
+                        Console.WriteLine("Joined tenant: innovia");
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"❌ Failed to connect to IoT server: {ex.Message}");
+                        Console.WriteLine($"Failed to connect to IoT server: {ex.Message}");
                     }
                 });
             }
         }
 
+        // LOGGAR NÄR EN KLIENT ANSLUTER
         public override async Task OnConnectedAsync()
         {
-            Console.WriteLine($"✅ Client connected: {Context.ConnectionId}");
+            Console.WriteLine($"Client connected: {Context.ConnectionId}");
             await base.OnConnectedAsync();
         }
 
+        // LOGGAR NÄR EN KLIENT DISKONNEKTERAR
         public override async Task OnDisconnectedAsync(Exception? exception)
         {
-            Console.WriteLine($"❌ Client disconnected: {Context.ConnectionId}");
+            Console.WriteLine($"Client disconnected: {Context.ConnectionId}");
             await base.OnDisconnectedAsync(exception);
         }
     }

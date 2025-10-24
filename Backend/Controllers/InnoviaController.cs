@@ -16,7 +16,7 @@ public class InnoviaController : ControllerBase
     [HttpGet("devices")]
     public async Task<IActionResult> GetDevices()
     {
-        var tenantId = "eb289b4d-ded7-4b83-9cc6-5c7afaca4475"; // Replace with your tenant ID
+        var tenantId = "eb289b4d-ded7-4b83-9cc6-5c7afaca4475"; // Tenant ID just nu hårdkodad
         var response = await _httpClient.GetAsync($"http://localhost:5101/api/tenants/{tenantId}/devices");
 
         if (!response.IsSuccessStatusCode)
