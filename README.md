@@ -128,3 +128,24 @@ OPEN_API_KEY="Din API-nyckel"
   - question håller användarens aktuella fråga
   - API anrop skickar användarens fråga till backend via fetch
   - meddelanden visar koversationer mellan användaren och chatboten
+
+
+## TEST INLOGGNING
+
+Login för Admin:
+
+Användarnamn: admin@example.com
+Lösenord: Admin@123
+
+Login för normal användare:
+Det går att skapa ett eget, annars:
+
+Användarnamn: TestUser
+Email: TestUser@test.com
+Lösenord: test@123
+
+
+## FUNKTIONER JAG HAR VIDAREUTVECKLAT SJÄLV
+
+AI Chatbot - Jarvis
+IoT - Realtidsuppdatering av enheter

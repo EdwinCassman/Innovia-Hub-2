@@ -14,6 +14,8 @@ public class MqttService
     // MQTT OPTIONS SOM DEFINIERAR ANSLUTNINGSINSTÄLLNINGAR
     private readonly MqttClientOptions _mqttOptions;
 
+    private bool _isIoTServerOnline = true;
+
     // Mapping för att översätta deviceId från Edge.Simulator till UUID från DeviceRegistry
     private static readonly Dictionary<string, string> DeviceIdMapping = new()
     {
@@ -62,12 +64,16 @@ public class MqttService
         _mqttClient.DisconnectedAsync += async e =>
         {
             Console.WriteLine("Disconnected from MQTT broker. Reconnecting in 5 seconds...");
-            await Task.Delay(TimeSpan.FromSeconds(5));
+            _isIoTServerOnline = false;
+            await _hubContext.Clients.All.SendAsync("iotServerStatus", _isIoTServerOnline);
 
+            await Task.Delay(TimeSpan.FromSeconds(5));
             try
             {
                 await _mqttClient.ConnectAsync(_mqttOptions);
                 Console.WriteLine("Reconnected successfully.");
+                _isIoTServerOnline = true;
+                await _hubContext.Clients.All.SendAsync("iotServerStatus", _isIoTServerOnline);
             }
             catch (Exception ex)
             {
@@ -80,7 +86,7 @@ public class MqttService
         {
             try
             {
-        
+
                 if (e.ApplicationMessage.Payload == null)
                 {
                     Console.WriteLine("Received MQTT message with null payload.");
@@ -93,7 +99,7 @@ public class MqttService
 
                 var options = new JsonSerializerOptions
                 {
-                    PropertyNameCaseInsensitive = true 
+                    PropertyNameCaseInsensitive = true
                 };
 
                 // DESERIALISERING AV MQTT-MEDDELANDET
@@ -164,6 +170,7 @@ public class MqttService
         }
     }
 }
+
 
 public class MqttMessage
 {
