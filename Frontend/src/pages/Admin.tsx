@@ -16,6 +16,17 @@ interface AdminProps {
 const Admin: React.FC<AdminProps> = ({ token }) => {
   const [activeTab, setActiveTab] = useState("bookings");
   const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null);
+  const [isIoTServerOnline, setIsIoTServerOnline] = useState(true);
+
+  useEffect(() => {
+    connection.on("IoTServerStatus", (status: boolean) => {
+      setIsIoTServerOnline(status);
+    });
+
+    return () => {
+      connection.off("IoTServerStatus");
+    };
+  }, []);
 
   useEffect(() => {
     const page = localStorage.getItem("activePage");
@@ -125,20 +136,25 @@ const Admin: React.FC<AdminProps> = ({ token }) => {
       </nav>
 
       <div className="content">
+        {!isIoTServerOnline && (
+          <div className="iot-offline-warning">
+            <p>⚠️ IoT-servern är för närvarande offline. Realtidsdata är inte tillgänglig.</p>
+          </div>
+        )}
+
         {activeTab === "bookings" && <BookingsTab token={token} />}
         {activeTab === "users" && <UsersTab token={token} />}
         {activeTab === "resources" && <ResourcesTab token={token} />}
         {activeTab === "devices" && (
-          <DeviceList
-            onDeviceSelect={(deviceId: string) => {
-              console.log("Updating selectedDeviceId:", deviceId);
-              setSelectedDeviceId(deviceId);
-            }}
-          />
+            <DeviceList
+              onDeviceSelect={(deviceId: string) => {
+                console.log("Updating selectedDeviceId:", deviceId);
+                setSelectedDeviceId(deviceId);
+              }}
+            />
         )}
         {activeTab === "realtime" && selectedDeviceId && (
           <>
-            {console.log("Selected Device ID:", selectedDeviceId)}
             <RealTimeData deviceId={selectedDeviceId} />
           </>
         )}

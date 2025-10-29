@@ -26,6 +26,8 @@ const DeviceList = ({ onDeviceSelect }: { onDeviceSelect: (deviceId: string) => 
         console.error("Error fetching devices:", error);
         setError(error.message);
         setLoading(false);
+
+        throw new Error("IoT-servern är offline.")
       });
   }, []);
 
@@ -34,7 +36,12 @@ const DeviceList = ({ onDeviceSelect }: { onDeviceSelect: (deviceId: string) => 
   }
 
   if (error) {
-    return <p>Error: {error}</p>;
+    return (
+      <div className="error-message">
+        <h2>IoT-servern är offline</h2>
+        <p>Försök igen senare.</p>
+      </div>
+    );
   }
 
   return (

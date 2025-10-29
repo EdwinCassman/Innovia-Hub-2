@@ -16,6 +16,8 @@ interface RealTimeDataProps {
 const RealTimeData: React.FC<RealTimeDataProps> = ({ deviceId }) => {
   const [data, setData] = useState<TelemetryData[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [isIoTServerOnline, setIsIoTServerOnline] = useState(true);
+
   console.log("Rendering RealTimeData for deviceId:", deviceId);
 
   useEffect(() => {
@@ -30,6 +32,11 @@ const RealTimeData: React.FC<RealTimeDataProps> = ({ deviceId }) => {
           if (isMounted && measurement.deviceId === deviceId) {
             setData((prevData) => [measurement, ...prevData]);
           }
+        });
+        // LYSSNAR PÅ IoT-SERVERSTATUS FRÅN SIGNALR
+        realtimeConnection.on("iotServerStatus", (status: boolean) => {
+          console.log("IoT server status:", status);
+          setIsIoTServerOnline(status);
         });
       } catch (err) {
         console.error("Error initializing SignalR connection:", err);
@@ -57,6 +64,11 @@ const RealTimeData: React.FC<RealTimeDataProps> = ({ deviceId }) => {
 
   return (
     <div className="realtime-data-container">
+      {!isIoTServerOnline && (
+        <div className="iot-offline-warning">
+          <p>⚠️ IoT-servern är för närvarande offline. Realtidsdata är inte tillgänglig.</p>
+        </div>
+      )}
       <h1>Realtime Data for Device {deviceId}</h1>
       {data.length === 0 ? (
         <p>No data available for this device.</p>
