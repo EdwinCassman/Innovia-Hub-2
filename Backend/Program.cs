@@ -3,6 +3,7 @@ using System;
 using System.Data.Common;
 using System.Collections.Generic;
 using System.Net.Http.Headers;
+using Microsoft.Extensions.FileProviders;
 
 using DotNetEnv;
 using Microsoft.AspNetCore.Builder;
@@ -154,10 +155,25 @@ app.MapControllers();
 app.MapHub<RealtimeHub>("/hub/realtime").RequireCors("AllowReactApp");
 app.MapHub<BookingHub>("/bookingHub").RequireCors("AllowReactApp");
 
+app.MapFallbackToFile("index.html");
+
 app.UseStaticFiles();
 
 var mqttService = app.Services.GetRequiredService<MqttService>();
 await mqttService.StartAsync();
+
+app.UseDefaultFiles(new DefaultFilesOptions
+{
+    DefaultFileNames = new List<string> { "index.html" }
+});
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(
+        Path.Combine(Directory.GetCurrentDirectory(), "../Frontend/dist")
+    ),
+    RequestPath = ""
+});
 
 
 app.Run();
