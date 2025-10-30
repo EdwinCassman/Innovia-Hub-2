@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import "../styles/Admin.css";
+import "../styles/admin.css";
 import BookingsTab from "../components/BookingsTab";
 import UsersTab from "../components/UsersTab";
 import ResourcesTab from "../components/ResourcesTab";
