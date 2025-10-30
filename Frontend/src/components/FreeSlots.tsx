@@ -69,7 +69,7 @@ const FreeSlots = ({ resourceId, date }: FreeSlotsProps) => {
 
    // Kontrollera om sloten är i framtiden
   const isFutureSlot = (slot: string) => {
-    const [startHour, endHour] = slot.split("-").map(Number);
+    const [endHour] = slot.split("-").map(Number);
     const now = new Date();
     const today = new Date().toISOString().split("T")[0];
     if (normalizedDate !== today) return true;

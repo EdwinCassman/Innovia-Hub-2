@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import type { Resource } from "../Interfaces/types";
 import "../styles/ResourceCard.css";
 

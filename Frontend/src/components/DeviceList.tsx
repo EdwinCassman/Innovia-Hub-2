@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { getDevices } from "../api/api"; // Importera funktionen från api.ts
 import "../styles/DeviceList.css";
 
