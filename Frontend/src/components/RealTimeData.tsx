@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { realtimeConnection, startRealtimeConnection } from "../signalRConnection";
-import "../styles/RealTimeData.css";
+import "../styles/RealtimeData.css";
 
 type TelemetryData = {
   deviceId: string;
