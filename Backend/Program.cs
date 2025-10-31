@@ -65,17 +65,19 @@ builder.Services.AddIdentity<User, IdentityRole>(options =>
 
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
-
     var envHost = Environment.GetEnvironmentVariable("DB_HOST");
     string cs;
+
     if (!string.IsNullOrEmpty(envHost))
     {
         var host = envHost;
-        var port = Environment.GetEnvironmentVariable("DB_PORT") ?? "3307";
+        var port = Environment.GetEnvironmentVariable("DB_PORT") ?? "25060"; // DigitalOcean SSL-port
         var user = Environment.GetEnvironmentVariable("DB_USER") ?? "";
         var pass = Environment.GetEnvironmentVariable("DB_PASSWORD") ?? "";
         var db = Environment.GetEnvironmentVariable("DB_NAME") ?? "";
-        cs = $"Server={host};Port={port};Database={db};User={user};Password={pass};TreatTinyAsBoolean=true";
+
+        // Lägg till SslMode=Preferred; för att ansluta säkert
+        cs = $"Server={host};Port={port};Database={db};User={user};Password={pass};TreatTinyAsBoolean=true;SslMode=Preferred;";
     }
     else
     {
@@ -84,6 +86,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
     options.UseMySql(cs, ServerVersion.AutoDetect(cs));
 });
+
 
 
 builder.Services.AddScoped<JwtToken>();
