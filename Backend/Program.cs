@@ -29,7 +29,8 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp", policy =>
     {
-        policy.WithOrigins("http://localhost:5173") // Frontendens URL
+        policy.WithOrigins("http://localhost:5173", 
+    "https://orca-app-ulof5.ondigitalocean.app") // Frontendens URL
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials(); // Viktigt för SignalR
