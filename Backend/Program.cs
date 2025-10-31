@@ -156,6 +156,8 @@ app.MapHub<RealtimeHub>("/hub/realtime").RequireCors("AllowReactApp");
 app.MapHub<BookingHub>("/bookingHub").RequireCors("AllowReactApp");
 
 app.UseStaticFiles();
+app.MapFallbackToFile("index.html");
+
 
 var mqttService = app.Services.GetRequiredService<MqttService>();
 await mqttService.StartAsync();
