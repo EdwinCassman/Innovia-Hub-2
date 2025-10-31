@@ -4,14 +4,13 @@
 FROM node:22 AS frontend
 WORKDIR /app
 
-# Copy only package files first for caching
-COPY ClientApp/package*.json ./
+# Copy root package.json and install dependencies
+COPY package*.json ./
 RUN npm install
 
-# Copy the rest of the React app
-COPY ClientApp/ ./
-
-# Build React app (default output is 'build' folder)
+# Copy the Frontend folder and build React app
+COPY Frontend/ ./Frontend
+WORKDIR /app/Frontend
 RUN npm run build
 
 # =============================
@@ -20,15 +19,13 @@ RUN npm run build
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
-# Copy all files and restore dependencies
-COPY *.sln ./
-COPY *.csproj ./
-RUN dotnet restore
+# Copy solution and project files
+COPY Backend/*.csproj ./Backend/
+RUN dotnet restore ./Backend/*.csproj
 
-# Copy remaining backend code
-COPY . ./
-
-# Publish the backend
+# Copy the rest of backend code
+COPY Backend/ ./Backend/
+WORKDIR /src/Backend
 RUN dotnet publish -c Release -o /app/publish
 
 # =============================
@@ -40,11 +37,11 @@ WORKDIR /app
 # Copy backend
 COPY --from=build /app/publish ./
 
-# Copy frontend build into wwwroot so .NET can serve it
-COPY --from=frontend /app/build ./wwwroot
+# Copy frontend build into wwwroot
+COPY --from=frontend /app/Frontend/build ./wwwroot
 
-# Expose port (optional)
+# Expose port
 EXPOSE 80
 
-# Set entrypoint
-ENTRYPOINT ["dotnet", "YourBackend.dll"]
+# Entry point
+ENTRYPOINT ["dotnet", "Backend.dll"]
