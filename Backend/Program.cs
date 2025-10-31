@@ -26,15 +26,17 @@ var builder = WebApplication.CreateBuilder(args);
 Env.Load();
 
 builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowReactApp", policy =>
     {
-        policy.WithOrigins("https://orca-app-ulof5.ondigitalocean.app") // Frontendens URL
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials(); // Viktigt för SignalR
+        options.AddPolicy("AllowReactApp", policy =>
+        {
+            policy.WithOrigins("https://orca-app-ulof5.ondigitalocean.app/",
+                "http://localhost:5173")
+             .AllowAnyHeader()
+             .AllowAnyMethod()
+             .AllowCredentials();
+
+        });
     });
-});
 
 builder.Services.AddOpenApi();
 builder.Services.AddScoped<IBookingRepository, BookingRepository>();
