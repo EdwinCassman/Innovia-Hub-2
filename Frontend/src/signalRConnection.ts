@@ -4,7 +4,7 @@ const token = localStorage.getItem("token");
 
 // SIGNAL R FÖR BOKNINGAR
 export const connection = new signalR.HubConnectionBuilder()
-  .withUrl("http://localhost:5022/bookingHub", {
+  .withUrl(`${import.meta.env.VITE_HUB_URL}/bookingHub`, {
     accessTokenFactory: () => token || ""
   })
   .withAutomaticReconnect()
@@ -14,7 +14,7 @@ export const connection = new signalR.HubConnectionBuilder()
 // SIGNAL R FÖR REALTIME DATA FÖR ENHETERNA
 // !!! Frontend ansluter nu bara till backend (5022) istället för både backend och realtime server (5103) !!!
 export const realtimeConnection = new signalR.HubConnectionBuilder()
-  .withUrl("http://localhost:5022/hub/realtime", {
+  .withUrl(`${import.meta.env.VITE_HUB_URL}/hub/realtime`, {
     withCredentials: true,
   })
   .withAutomaticReconnect()
