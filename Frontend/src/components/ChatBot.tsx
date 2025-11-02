@@ -1,11 +1,7 @@
 import React, { useState } from "react";
 import "../styles/chatbot.css";
 
-import axios from "axios";
 const API_CHAT_URL = import.meta.env.VITE_CHAT_HUB;
-const api = axios.create({
-  baseURL: API_CHAT_URL,
-});
 
 const ChatBot: React.FC = () => {
   const [question, setQuestion] = useState("");
@@ -19,7 +15,7 @@ const ChatBot: React.FC = () => {
     setMessages((prev) => [...prev, { sender: "user", text: question }]);
 
     try {
-      const response = await fetch(`${API_CHAT_URL}`, {
+      const response = await fetch(API_CHAT_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
