@@ -4,7 +4,7 @@ const token = localStorage.getItem("token");
 
 // SIGNAL R FÖR BOKNINGAR
 export const connection = new signalR.HubConnectionBuilder()
-  .withUrl(`${import.meta.env.VITE_HUB_URL}/bookingHub`, {
+  .withUrl(`${import.meta.env.VITE_BOOKING_HUB}/bookingHub`, {
     accessTokenFactory: () => token || ""
   })
   .withAutomaticReconnect()
